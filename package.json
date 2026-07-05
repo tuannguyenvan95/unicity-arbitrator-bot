@@ -1,0 +1,32 @@
+{
+  "name": "unicity-arbitrator-bot",
+  "version": "0.1.0",
+  "description": "Autonomous AI Arbitrator Bot prototype for Unicity Testnet v2",
+  "main": "dist/arbitrator.js",
+  "type": "module",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/arbitrator.js",
+    "dev": "ts-node src/bot/arbitrator.ts",
+    "test": "jest -c jest.config.cjs",
+    "docker:build": "docker build -t unicity-arbitrator .",
+    "docker:run": "docker run -p 3000:3000 unicity-arbitrator"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "nostr-tools": "^1.14.1",
+    "@unicitylabs/sphere-sdk": "^0.5.0",
+    "winston": "^3.12.0",
+    "tweetnacl": "^1.0.3",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "@types/express": "^4.17.17"
+  }
+}
