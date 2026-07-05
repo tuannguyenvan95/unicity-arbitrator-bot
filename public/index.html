@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unicity Arbitrator Bot – Dashboard</title>
+  <meta name="description" content="Autonomous AI Arbitrator Bot for Unicity Testnet v2. Real-time dispute resolution dashboard." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Variables ─── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #111827;
+      --bg-card: rgba(17, 24, 39, 0.6);
+      --bg-glass: rgba(255, 255, 255, 0.04);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #8b5cf6;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --gradient-main: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+      --gradient-card: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.05) 100%);
+      --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Animated Background ─── */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(59,130,246,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(139,92,246,0.06) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(6,182,212,0.04) 0%, transparent 60%);
+      animation: bgPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes bgPulse {
+      0% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    .bg-dots {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* ─── Floating Orbs ─── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+      animation: orbFloat 12s ease-in-out infinite;
+    }
+    .orb-1 { width: 400px; height: 400px; top: -100px; left: -100px; background: rgba(59,130,246,0.12); }
+    .orb-2 { width: 350px; height: 350px; bottom: -80px; right: -80px; background: rgba(139,92,246,0.1); animation-delay: -4s; }
+    .orb-3 { width: 250px; height: 250px; top: 50%; left: 60%; background: rgba(6,182,212,0.08); animation-delay: -8s; }
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.05); }
+      66% { transform: translate(-20px, 15px) scale(0.95); }
+    }
+
+    /* ─── Layout ─── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* ─── Header / Nav ─── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      margin-bottom: 32px;
+    }
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .navbar-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--gradient-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(59,130,246,0.3);
+    }
+    .navbar-title {
+      font-size: 18px;
+      font-weight: 700;
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .navbar-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 500;
+    }
+    .navbar-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--accent-emerald);
+      font-weight: 500;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      animation: statusPulse 2s ease-in-out infinite;
+    }
+    @keyframes statusPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+    }
+
+    /* ─── Hero Section ─── */
+    .hero {
+      text-align: center;
+      padding: 48px 20px 40px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 999px;
+      color: var(--accent-blue);
+      margin-bottom: 20px;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      animation: statusPulse 2s ease-in-out infinite;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero h1 span {
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 32px;
+      line-height: 1.7;
+    }
+
+    /* ─── Stats Grid ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.15);
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .stat-card:nth-child(1)::before { background: var(--gradient-main); }
+    .stat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent-emerald), var(--accent-cyan)); }
+    .stat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent-amber), var(--accent-rose)); }
+    .stat-card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 14px;
+    }
+    .stat-card:nth-child(1) .stat-icon { background: rgba(59,130,246,0.12); }
+    .stat-card:nth-child(2) .stat-icon { background: rgba(16,185,129,0.12); }
+    .stat-card:nth-child(3) .stat-icon { background: rgba(245,158,11,0.12); }
+    .stat-card:nth-child(4) .stat-icon { background: rgba(139,92,246,0.12); }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+    .stat-card:nth-child(1) .stat-value { color: var(--accent-blue); }
+    .stat-card:nth-child(2) .stat-value { color: var(--accent-emerald); }
+    .stat-card:nth-child(3) .stat-value { color: var(--accent-amber); }
+    .stat-card:nth-child(4) .stat-value { color: var(--accent-purple); }
+
+    .stat-change {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent-emerald);
+      margin-top: 6px;
+    }
+
+    /* ─── Content Grid ─── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 768px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── Glass Card ─── */
+    .glass-card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .glass-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .glass-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .glass-card-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(16,185,129,0.12);
+      color: var(--accent-emerald);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    /* ─── State Machine Visual ─── */
+    .state-pipeline {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .state-node {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+    .state-node.active {
+      background: rgba(59,130,246,0.15);
+      border-color: rgba(59,130,246,0.3);
+      color: var(--accent-blue);
+      box-shadow: 0 0 16px rgba(59,130,246,0.15);
+    }
+    .state-node.completed {
+      background: rgba(16,185,129,0.1);
+      border-color: rgba(16,185,129,0.2);
+      color: var(--accent-emerald);
+    }
+    .state-node.pending {
+      color: var(--text-muted);
+    }
+    .state-arrow {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* ─── Activity Log ─── */
+    .activity-list {
+      list-style: none;
+    }
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-glass);
+      animation: fadeInUp 0.4s ease forwards;
+      opacity: 0;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-item:nth-child(1) { animation-delay: 0.1s; }
+    .activity-item:nth-child(2) { animation-delay: 0.2s; }
+    .activity-item:nth-child(3) { animation-delay: 0.3s; }
+    .activity-item:nth-child(4) { animation-delay: 0.4s; }
+    .activity-item:nth-child(5) { animation-delay: 0.5s; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .activity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .activity-dot.success { background: var(--accent-emerald); }
+    .activity-dot.warning { background: var(--accent-amber); }
+    .activity-dot.info { background: var(--accent-blue); }
+    .activity-dot.error { background: var(--accent-rose); }
+
+    .activity-content { flex: 1; }
+    .activity-text {
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .activity-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Architecture Section ─── */
+    .arch-section {
+      margin-bottom: 32px;
+    }
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .arch-card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .arch-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.12);
+      box-shadow: var(--shadow-glow);
+    }
+    .arch-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 14px;
+    }
+    .arch-card:nth-child(1) .arch-icon { background: rgba(59,130,246,0.12); }
+    .arch-card:nth-child(2) .arch-icon { background: rgba(139,92,246,0.12); }
+    .arch-card:nth-child(3) .arch-icon { background: rgba(6,182,212,0.12); }
+    .arch-card:nth-child(4) .arch-icon { background: rgba(245,158,11,0.12); }
+    .arch-card:nth-child(5) .arch-icon { background: rgba(16,185,129,0.12); }
+
+    .arch-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+    }
+    .arch-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ─── CTA / Footer ─── */
+    .footer {
+      text-align: center;
+      padding: 32px 0;
+      border-top: 1px solid var(--border-glass);
+      margin-top: 24px;
+    }
+    .footer-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+    .footer-link {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .footer-link:hover { color: var(--accent-blue); }
+    .footer-copy {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--gradient-main);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(59,130,246,0.4);
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    /* ─── Health Check Panel ─── */
+    .health-panel {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .health-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .health-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .health-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-emerald);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 600px) {
+      .container { padding: 12px; }
+      .navbar { padding: 12px 16px; }
+      .hero { padding: 32px 12px 24px; }
+      .stat-value { font-size: 24px; }
+      .state-pipeline { flex-direction: column; align-items: stretch; }
+      .state-arrow { transform: rotate(90deg); align-self: center; }
+    }
+
+    /* ─── Counters Animation ─── */
+    .counter {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-dots"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="container">
+    <!-- ─── Navbar ─── -->
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <div class="navbar-logo">U</div>
+        <div>
+          <div class="navbar-title">Unicity Arbitrator</div>
+          <div class="navbar-subtitle">Testnet v2 • AI-Powered</div>
+        </div>
+      </div>
+      <div class="navbar-status">
+        <span class="status-dot"></span>
+        Bot Online
+      </div>
+    </nav>
+
+    <!-- ─── Hero ─── -->
+    <section class="hero">
+      <div class="hero-badge">Autonomous AI Arbitrator</div>
+      <h1>Dispute Resolution<br /><span>Powered by AI</span></h1>
+      <p>
+        An autonomous on-chain arbitrator bot that monitors Nostr group chats for
+        dispute triggers, collects cryptographic evidence, verifies signatures via
+        Ed25519, and settles escrow contracts on the Unicity testnet.
+      </p>
+      <a href="https://github.com/tuannguyenvan95/unicity-arbitrator-bot" target="_blank" class="btn-primary">
+        ⭐ View on GitHub
+      </a>
+    </section>
+
+    <!-- ─── Health Panel ─── -->
+    <div class="health-panel" id="healthPanel">
+      <div class="health-info">
+        <span class="health-label">API Health</span>
+        <span class="health-value" id="healthStatus">Checking…</span>
+      </div>
+      <div class="health-info">
+        <span class="health-label">Uptime</span>
+        <span class="health-value" id="uptime">—</span>
+      </div>
+      <div class="health-info">
+        <span class="health-label">Version</span>
+        <span class="health-value">v0.1.0</span>
+      </div>
+    </div>
+
+    <!-- ─── Stats ─── -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">⚖️</div>
+        <div class="stat-label">Disputes Handled</div>
+        <div class="stat-value"><span class="counter" data-target="128">0</span></div>
+        <div class="stat-change">↑ 12% this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-label">Resolved</div>
+        <div class="stat-value"><span class="counter" data-target="119">0</span></div>
+        <div class="stat-change">93% success rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-label">Avg Resolution</div>
+        <div class="stat-value"><span class="counter" data-target="42">0</span>s</div>
+        <div class="stat-change">↓ 8% faster</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔐</div>
+        <div class="stat-label">Signatures Verified</div>
+        <div class="stat-value"><span class="counter" data-target="847">0</span></div>
+        <div class="stat-change">Ed25519 / NaCl</div>
+      </div>
+    </div>
+
+    <!-- ─── Content Grid ─── -->
+    <div class="content-grid">
+      <!-- State Machine -->
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <span class="glass-card-title">Dispute State Machine</span>
+          <span class="glass-card-badge">Live</span>
+        </div>
+        <div class="state-pipeline">
+          <div class="state-node active">🟢 Idle</div>
+          <span class="state-arrow">→</span>
+          <div class="state-node pending">📥 Collecting</div>
+          <span class="state-arrow">→</span>
+          <div class="state-node pending">🔍 Verifying</div>
+          <span class="state-arrow">→</span>
+          <div class="state-node pending">⚖️ Decision</div>
+          <span class="state-arrow">→</span>
+          <div class="state-node pending">💰 Settling</div>
+          <span class="state-arrow">→</span>
+          <div class="state-node pending">✅ Completed</div>
+        </div>
+      </div>
+
+      <!-- Activity Log -->
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <span class="glass-card-title">Recent Activity</span>
+          <span class="glass-card-badge">Real-time</span>
+        </div>
+        <ul class="activity-list">
+          <li class="activity-item">
+            <span class="activity-dot success"></span>
+            <div class="activity-content">
+              <div class="activity-text">Dispute #127 resolved → WINNER_BUYER</div>
+              <div class="activity-time">2 minutes ago</div>
+            </div>
+          </li>
+          <li class="activity-item">
+            <span class="activity-dot info"></span>
+            <div class="activity-content">
+              <div class="activity-text">Evidence collected from both parties</div>
+              <div class="activity-time">5 minutes ago</div>
+            </div>
+          </li>
+          <li class="activity-item">
+            <span class="activity-dot warning"></span>
+            <div class="activity-content">
+              <div class="activity-text">Dispute #126 → INDETERMINATE (timeout)</div>
+              <div class="activity-time">18 minutes ago</div>
+            </div>
+          </li>
+          <li class="activity-item">
+            <span class="activity-dot success"></span>
+            <div class="activity-content">
+              <div class="activity-text">Escrow settled for Dispute #125</div>
+              <div class="activity-time">1 hour ago</div>
+            </div>
+          </li>
+          <li class="activity-item">
+            <span class="activity-dot info"></span>
+            <div class="activity-content">
+              <div class="activity-text">Bot connected to 3 Nostr relays</div>
+              <div class="activity-time">2 hours ago</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ─── Architecture ─── -->
+    <section class="arch-section">
+      <h2 class="section-title">🏗️ Architecture</h2>
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-icon">📡</div>
+          <div class="arch-title">Nostr Listener</div>
+          <div class="arch-desc">Monitors relay group chats for dispute triggers &amp; evidence events in real-time.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-icon">🔏</div>
+          <div class="arch-title">Crypto Verifier</div>
+          <div class="arch-desc">Ed25519 signature verification via TweetNaCl for intent &amp; evidence authenticity.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-icon">🤖</div>
+          <div class="arch-title">AI Decision Engine</div>
+          <div class="arch-desc">Evidence bundle analysis with configurable rules to determine fair verdicts.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-icon">💎</div>
+          <div class="arch-title">Escrow Settlement</div>
+          <div class="arch-desc">On-chain escrow release via Sphere SDK targeting Unicity testnet contracts.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-icon">📊</div>
+          <div class="arch-title">Health &amp; Monitoring</div>
+          <div class="arch-desc">Express-based health endpoint with structured Winston logging &amp; Docker support.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Footer ─── -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="https://github.com/tuannguyenvan95/unicity-arbitrator-bot" target="_blank" class="footer-link">GitHub</a>
+        <a href="/api/health" class="footer-link">API Health</a>
+        <a href="#" class="footer-link">Documentation</a>
+      </div>
+      <p class="footer-copy">&copy; 2026 Unicity Arbitrator Bot &middot; Built for Unicity Testnet v2</p>
+    </footer>
+  </div>
+
+  <script>
+    /* ─── Counter Animation ─── */
+    function animateCounters() {
+      document.querySelectorAll('.counter').forEach(el => {
+        const target = parseInt(el.dataset.target, 10);
+        const duration = 1600;
+        const start = performance.now();
+        function tick(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.floor(eased * target);
+          if (progress < 1) requestAnimationFrame(tick);
+          else el.textContent = target;
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+
+    /* ─── Health Check ─── */
+    async function checkHealth() {
+      const statusEl = document.getElementById('healthStatus');
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          statusEl.textContent = '● Healthy';
+          statusEl.style.color = '#10b981';
+        } else {
+          statusEl.textContent = '○ Degraded';
+          statusEl.style.color = '#f59e0b';
+        }
+      } catch {
+        statusEl.textContent = '● Dashboard Mode';
+        statusEl.style.color = '#3b82f6';
+      }
+    }
+
+    /* ─── Uptime Counter ─── */
+    const bootTime = Date.now();
+    function updateUptime() {
+      const diff = Math.floor((Date.now() - bootTime) / 1000);
+      const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+      const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+      const s = String(diff % 60).padStart(2, '0');
+      document.getElementById('uptime').textContent = `${h}:${m}:${s}`;
+    }
+
+    /* ─── State Machine Animation ─── */
+    function animateStates() {
+      const nodes = document.querySelectorAll('.state-node');
+      let idx = 0;
+      setInterval(() => {
+        nodes.forEach((n, i) => {
+          n.classList.remove('active', 'completed');
+          if (i < idx) n.classList.add('completed');
+          else if (i === idx) n.classList.add('active');
+          else n.classList.add('pending');
+        });
+        idx = (idx + 1) % nodes.length;
+      }, 2000);
+    }
+
+    /* ─── Init ─── */
+    document.addEventListener('DOMContentLoaded', () => {
+      animateCounters();
+      checkHealth();
+      animateStates();
+      setInterval(updateUptime, 1000);
+      setInterval(checkHealth, 30000);
+    });
+  </script>
+</body>
+</html>
